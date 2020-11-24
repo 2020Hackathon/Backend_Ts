@@ -1,0 +1,65 @@
+import { promisify } from 'util';
+import { sign, verify } from 'jsonwebtoken';
+import { InternalError, BadTokenError, TokenExpiredError } from './apiError';
+import Logger from './Logger';
+import { tokenInfo } from '../config';
+import validate = WebAssembly.validate;
+
+export default class JWT {
+  public static async encode(payload: JwtPayload): Promise<string> {
+    const cert = tokenInfo.key;
+    if (!cert) throw new InternalError('Token generation failure');
+    // @ts-ignore
+    return promisify(sign)({ ...payload }, cert);
+  }
+
+  public static async validate(token: string): Promise<JwtPayload> {
+    const cert = tokenInfo.key;
+    try {
+      // @ts-ignore
+      return (await verify(token, cert)) as JwtPayload;
+    } catch (e) {
+      Logger.debug(e);
+      if (e && e.name === 'TokenExpiredError') throw new TokenExpiredError();
+
+      throw new BadTokenError();
+    }
+  }
+
+  public static async decode(token: string): Promise<JwtPayload> {
+    const cert = tokenInfo.key;
+    try {
+      // @ts-ignore
+      return (await verify(token, cert, {
+        ignoreExpiration: true,
+      })) as JwtPayload;
+    } catch (e) {
+      Logger.debug(e);
+      throw new BadTokenError();
+    }
+  }
+}
+
+export class JwtPayload {
+  aud: string;
+  sub: string;
+  iss: string;
+  iat: number;
+  exp: number;
+  prm: string;
+
+  constructor(
+    issuer: string,
+    audience: string,
+    subject: string,
+    param: string,
+    validity: number,
+  ) {
+    this.iss = issuer;
+    this.aud = audience;
+    this.sub = subject;
+    this.iat = Math.floor(Date.now() / 1000) * 60 * 60;
+    this.exp = this.iat + validity * 60 * 60;
+    this.prm = param;
+  }
+}

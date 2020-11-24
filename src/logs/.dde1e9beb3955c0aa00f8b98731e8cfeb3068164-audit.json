@@ -1,0 +1,14 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "/Users/yumyeongcheol/Desktop/mspring03/project/Backend_Ts/src/logs/.dde1e9beb3955c0aa00f8b98731e8cfeb3068164-audit.json",
+    "files": [
+        {
+            "date": 1606180043132,
+            "name": "/Users/yumyeongcheol/Desktop/mspring03/project/Backend_Ts/src/logs/2020-11-24.log",
+            "hash": "9661fcea5c0cd0e27fa0adc2d223337f"
+        }
+    ]
+}
